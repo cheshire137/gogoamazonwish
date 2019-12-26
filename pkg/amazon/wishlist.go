@@ -73,6 +73,9 @@ func (w *Wishlist) onListItem(listItem *colly.HTMLElement) {
 		listItem.ForEach(".a-price", func(index int, priceEl *colly.HTMLElement) {
 			w.onListItemPrice(id, priceEl)
 		})
+		listItem.ForEach(".dateAddedText", func(index int, dateEl *colly.HTMLElement) {
+			w.onListItemDateAdded(id, dateEl)
+		})
 	}
 }
 
@@ -88,9 +91,9 @@ func (w *Wishlist) onListItemLink(id string, link *colly.HTMLElement) {
 	}
 
 	w.items[id] = &Item{
-		URL:  link.Request.AbsoluteURL(relativeURL),
-		Name: title,
-		ID:   id,
+		DirectURL: link.Request.AbsoluteURL(relativeURL),
+		Name:      title,
+		ID:        id,
 	}
 }
 
@@ -101,4 +104,27 @@ func (w *Wishlist) onListItemPrice(id string, priceEl *colly.HTMLElement) {
 	}
 
 	item.Price = priceEl.ChildText(".a-offscreen")
+}
+
+func (w *Wishlist) onListItemDateAdded(id string, dateEl *colly.HTMLElement) {
+	item := w.items[id]
+	if item == nil {
+		return
+	}
+
+	childText := dateEl.ChildText("span")
+	if len(childText) < 1 {
+		return
+	}
+
+	lines := strings.Split(childText, "\n")
+	for _, line := range lines {
+		if strings.Contains(line, "Added ") {
+			addedText := strings.Split(line, "Added ")
+			if len(addedText) >= 2 {
+				item.DateAdded = addedText[1]
+				break
+			}
+		}
+	}
 }
