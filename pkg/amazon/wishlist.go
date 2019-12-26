@@ -70,6 +70,9 @@ func (w *Wishlist) onListItem(listItem *colly.HTMLElement) {
 		listItem.ForEach("a", func(index int, link *colly.HTMLElement) {
 			w.onListItemLink(id, link)
 		})
+		listItem.ForEach(".a-price", func(index int, priceEl *colly.HTMLElement) {
+			w.onListItemPrice(id, priceEl)
+		})
 	}
 }
 
@@ -84,6 +87,18 @@ func (w *Wishlist) onListItemLink(id string, link *colly.HTMLElement) {
 		return
 	}
 
-	url := link.Request.AbsoluteURL(relativeURL)
-	w.items[id] = NewItem(id, url, title)
+	w.items[id] = &Item{
+		URL:  link.Request.AbsoluteURL(relativeURL),
+		Name: title,
+		ID:   id,
+	}
+}
+
+func (w *Wishlist) onListItemPrice(id string, priceEl *colly.HTMLElement) {
+	item := w.items[id]
+	if item == nil {
+		return
+	}
+
+	item.Price = priceEl.ChildText(".a-offscreen")
 }
