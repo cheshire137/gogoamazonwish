@@ -20,6 +20,7 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	fmt.Println("Found:")
+	fmt.Printf("\n\n----------------\n\n")
+	fmt.Printf("Found %d item(s):\n", len(ids))
 	fmt.Println(ids)
 }

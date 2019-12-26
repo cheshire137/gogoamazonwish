@@ -8,23 +8,24 @@ import (
 )
 
 type Wishlist struct {
-	url string
+	url     string
+	itemIDs []string
 }
 
 func NewWishlist(url string) *Wishlist {
-	return &Wishlist{url: url}
+	return &Wishlist{
+		url:     url,
+		itemIDs: []string{},
+	}
 }
 
 func (w *Wishlist) Items() ([]string, error) {
-	userAgent := colly.UserAgent("Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36")
-	c := colly.NewCollector(userAgent)
-	ids := []string{}
-	c.OnHTML("ul li", func(e *colly.HTMLElement) {
-		id := e.Attr("data-id")
-		if len(id) > 0 {
-			ids = append(ids, id)
-		}
+	c := colly.NewCollector(colly.CacheDir("./cache"))
+	c.OnResponse(func(r *colly.Response) {
+		fmt.Printf("Status %d\n", r.StatusCode)
+		fmt.Println(string(r.Body))
 	})
+	c.OnHTML("ul li", w.onListItem)
 	c.OnError(func(r *colly.Response, err error) {
 		fmt.Printf("Error: status %d\n", r.StatusCode)
 		log.Fatalln(err)
@@ -33,5 +34,12 @@ func (w *Wishlist) Items() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	return ids, nil
+	return w.itemIDs, nil
+}
+
+func (w *Wishlist) onListItem(e *colly.HTMLElement) {
+	id := e.Attr("data-id")
+	if len(id) > 0 {
+		w.itemIDs = append(w.itemIDs, id)
+	}
 }
