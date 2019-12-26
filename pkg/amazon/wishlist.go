@@ -64,19 +64,26 @@ func (w *Wishlist) String() string {
 	return w.url
 }
 
-func (w *Wishlist) onListItem(e *colly.HTMLElement) {
-	id := e.Attr("data-id")
+func (w *Wishlist) onListItem(listItem *colly.HTMLElement) {
+	id := listItem.Attr("data-itemid")
 	if len(id) > 0 {
-		e.ForEach("a", w.onListItemLink)
+		listItem.ForEach("a", func(index int, link *colly.HTMLElement) {
+			w.onListItemLink(id, link)
+		})
 	}
 }
 
-func (w *Wishlist) onListItemLink(index int, e *colly.HTMLElement) {
-	title := e.Attr("title")
-	relativeURL := e.Attr("href")
-	if len(title) > 0 && len(relativeURL) > 0 {
-		url := e.Request.AbsoluteURL(relativeURL)
-		item := &Item{URL: url, Name: title}
-		w.items[title] = item
+func (w *Wishlist) onListItemLink(id string, link *colly.HTMLElement) {
+	title := link.Attr("title")
+	if len(title) < 1 {
+		return
 	}
+
+	relativeURL := link.Attr("href")
+	if len(relativeURL) < 1 {
+		return
+	}
+
+	url := link.Request.AbsoluteURL(relativeURL)
+	w.items[id] = NewItem(id, url, title)
 }
