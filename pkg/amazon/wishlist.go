@@ -3,6 +3,8 @@ package amazon
 import (
 	"fmt"
 	"log"
+	"net/url"
+	"strings"
 
 	"github.com/gocolly/colly"
 )
@@ -12,11 +14,33 @@ type Wishlist struct {
 	items map[string]*Item
 }
 
-func NewWishlist(url string) *Wishlist {
+func NewWishlist(urlStr string) (*Wishlist, error) {
+	uri, err := url.Parse(urlStr)
+	if err != nil {
+		return nil, err
+	}
+	if !uri.IsAbs() {
+		return nil, fmt.Errorf("URL '%s' is not an absolute URL to an Amazon wishlist",
+			urlStr)
+	}
+	if !strings.Contains(strings.ToLower(uri.Hostname()), "amazon") {
+		return nil, fmt.Errorf("URL '%s' does not look like an Amazon wishlist URL",
+			urlStr)
+	}
+	pathParts := strings.Split(uri.EscapedPath(), "/")
+	id := pathParts[len(pathParts)-1]
+	return NewWishlistFromID(id)
+}
+
+func NewWishlistFromID(id string) (*Wishlist, error) {
+	if len(id) < 1 {
+		return nil, fmt.Errorf("ID '%s' does not look like an Amazon wishlist ID", id)
+	}
+	url := fmt.Sprintf("https://www.amazon.com/hz/wishlist/ls/%s?reveal=unpurchased&sort=date&layout=standard", id)
 	return &Wishlist{
 		url:   url,
 		items: map[string]*Item{},
-	}
+	}, nil
 }
 
 func (w *Wishlist) Items() (map[string]*Item, error) {
@@ -34,6 +58,10 @@ func (w *Wishlist) Items() (map[string]*Item, error) {
 		return nil, err
 	}
 	return w.items, nil
+}
+
+func (w *Wishlist) String() string {
+	return w.url
 }
 
 func (w *Wishlist) onListItem(e *colly.HTMLElement) {

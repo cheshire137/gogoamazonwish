@@ -14,13 +14,20 @@ func main() {
 		os.Exit(1)
 	}
 	url := os.Args[1]
-	fmt.Println(url)
-	wishlist := amazon.NewWishlist(url)
+	fmt.Printf("Got URL: %s\n", url)
+
+	wishlist, err := amazon.NewWishlist(url)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	fmt.Printf("Using URL: %s\n", wishlist)
+
 	items, err := wishlist.Items()
 	if err != nil {
 		log.Fatalln(err)
 	}
-	fmt.Printf("\n\n----------------\n\n")
+
 	fmt.Printf("Found %d item(s):\n", len(items))
 	number := 1
 	for name, item := range items {
