@@ -12,6 +12,12 @@ import (
 	"github.com/gocolly/colly/proxy"
 )
 
+const (
+	robotMessage = "we just need to make sure you're not a robot"
+	cachePath    = "./cache"
+)
+
+// Wishlist represents an Amazon wishlist of products.
 type Wishlist struct {
 	DebugMode    bool
 	CacheResults bool
@@ -21,6 +27,7 @@ type Wishlist struct {
 	items        map[string]*Item
 }
 
+// NewWishlist constructs an Amazon wishlist for the given URL.
 func NewWishlist(urlStr string) (*Wishlist, error) {
 	uri, err := url.Parse(urlStr)
 	if err != nil {
@@ -39,6 +46,7 @@ func NewWishlist(urlStr string) (*Wishlist, error) {
 	return NewWishlistFromID(id)
 }
 
+// NewWishlistFromID constructs an Amazon wishlist for the given wishlist ID.
 func NewWishlistFromID(id string) (*Wishlist, error) {
 	if len(id) < 1 {
 		return nil, fmt.Errorf("ID '%s' does not look like an Amazon wishlist ID", id)
@@ -54,6 +62,8 @@ func NewWishlistFromID(id string) (*Wishlist, error) {
 	}, nil
 }
 
+// SetProxyURLs specifies URLs of proxies to use when accessing Amazon. May
+// be useful if you're getting an error about Amazon thinking you're a bot.
 func (w *Wishlist) SetProxyURLs(urls ...string) {
 	w.proxyURLs = make([]string, len(urls))
 	for i, url := range urls {
@@ -65,9 +75,8 @@ func (w *Wishlist) SetProxyURLs(urls ...string) {
 	}
 }
 
-const robotMessage = "we just need to make sure you're not a robot"
-const cachePath = "./cache"
-
+// Items returns a map of the products on the wishlist, where keys are
+// the product IDs and the values are the products.
 func (w *Wishlist) Items() (map[string]*Item, error) {
 	options := []func(*colly.Collector){colly.Async(true)}
 	if w.CacheResults {

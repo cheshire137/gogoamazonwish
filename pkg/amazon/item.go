@@ -4,6 +4,7 @@ import (
 	"fmt"
 )
 
+// Item represents a product on an Amazon wishlist.
 type Item struct {
 	DirectURL string
 	Name      string
@@ -12,6 +13,7 @@ type Item struct {
 	DateAdded string
 }
 
+// String returns a description of this product.
 func (i *Item) String() string {
 	if i.DateAdded != "" && i.Price != "" && i.Name != "" && i.DirectURL != "" {
 		return fmt.Sprintf("%s %s\n\tAdded: %s\n\t<%s>", i.Name, i.Price, i.DateAdded,
