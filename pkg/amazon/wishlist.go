@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/gocolly/colly"
+	"github.com/gocolly/colly/extensions"
 )
 
 type Wishlist struct {
@@ -51,8 +52,12 @@ const robotMessage = "we just need to make sure you're not a robot"
 
 func (w *Wishlist) Items() (map[string]*Item, error) {
 	c := colly.NewCollector(colly.CacheDir("./cache"))
+	extensions.RandomUserAgent(c)
 
 	c.OnRequest(func(r *colly.Request) {
+		if w.DebugMode {
+			fmt.Println("Using User-Agent", r.Headers.Get("User-Agent"))
+		}
 		r.Headers.Set("cookie", "i18n-prefs=USD")
 	})
 
