@@ -15,10 +15,19 @@ func main() {
 	}
 	url := os.Args[1]
 	fmt.Printf("Got URL: %s\n", url)
+	debugMode := false
+	if len(os.Args) > 2 {
+		debugMode = os.Args[2] == "-d"
+	}
 
 	wishlist, err := amazon.NewWishlist(url)
 	if err != nil {
 		log.Fatalln(err)
+	}
+
+	wishlist.DebugMode = debugMode
+	if wishlist.DebugMode {
+		fmt.Println("Debug mode ON")
 	}
 
 	fmt.Printf("Using URL: %s\n", wishlist)
