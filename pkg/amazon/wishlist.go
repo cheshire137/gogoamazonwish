@@ -2,6 +2,7 @@ package amazon
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/url"
 	"strings"
@@ -11,6 +12,7 @@ import (
 
 type Wishlist struct {
 	url   string
+	id    string
 	items map[string]*Item
 }
 
@@ -39,21 +41,27 @@ func NewWishlistFromID(id string) (*Wishlist, error) {
 	url := fmt.Sprintf("https://www.amazon.com/hz/wishlist/ls/%s?reveal=unpurchased&sort=date&layout=standard", id)
 	return &Wishlist{
 		url:   url,
+		id:    id,
 		items: map[string]*Item{},
 	}, nil
 }
 
 func (w *Wishlist) Items() (map[string]*Item, error) {
 	c := colly.NewCollector(colly.CacheDir("./cache"))
+	var err error
 	c.OnResponse(func(r *colly.Response) {
 		fmt.Printf("Status %d\n", r.StatusCode)
+		err = ioutil.WriteFile(fmt.Sprintf("wishlist-%s.html", w.id), r.Body, 0644)
 	})
+	if err != nil {
+		return nil, err
+	}
 	c.OnHTML("ul li", w.onListItem)
-	c.OnError(func(r *colly.Response, err error) {
+	c.OnError(func(r *colly.Response, e error) {
 		fmt.Printf("Error: status %d\n", r.StatusCode)
-		log.Fatalln(err)
+		log.Fatalln(e)
 	})
-	err := c.Visit(w.url)
+	err = c.Visit(w.url)
 	if err != nil {
 		return nil, err
 	}
