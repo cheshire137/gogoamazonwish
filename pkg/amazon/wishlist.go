@@ -1,8 +1,8 @@
 package amazon
 
 import (
+	"errors"
 	"fmt"
-	"log"
 	"net/url"
 	"strings"
 	"time"
@@ -28,6 +28,7 @@ type Wishlist struct {
 	// CacheResults determines whether responses from Amazon should be cached.
 	CacheResults bool
 
+	errors    []error
 	proxyURLs []string
 	urls      []string
 	id        string
@@ -70,7 +71,13 @@ func NewWishlistFromID(id string) (*Wishlist, error) {
 		id:           id,
 		items:        map[string]*Item{},
 		proxyURLs:    []string{},
+		errors:       []error{},
 	}, nil
+}
+
+// Errors returns any errors that occurred when trying to load the wishlist.
+func (w *Wishlist) Errors() []error {
+	return w.errors
 }
 
 // SetProxyURLs specifies URLs of proxies to use when accessing Amazon. May
@@ -97,7 +104,6 @@ func (w *Wishlist) Items() (map[string]*Item, error) {
 		options = append(options, colly.CacheDir(cachePath))
 	}
 	c := colly.NewCollector(options...)
-	defer c.Wait()
 
 	extensions.RandomUserAgent(c)
 	c.Limit(&colly.LimitRule{
@@ -117,8 +123,7 @@ func (w *Wishlist) Items() (map[string]*Item, error) {
 	})
 
 	c.OnError(func(r *colly.Response, e error) {
-		fmt.Printf("Error: status %d\n", r.StatusCode)
-		log.Fatalln(e)
+		w.errors = append(w.errors, e)
 	})
 
 	if w.DebugMode {
@@ -127,6 +132,12 @@ func (w *Wishlist) Items() (map[string]*Item, error) {
 
 	if err := c.Visit(w.urls[0]); err != nil {
 		return nil, err
+	}
+
+	c.Wait()
+
+	if len(w.errors) > 0 {
+		return nil, w.errors[0]
 	}
 
 	return w.items, nil
@@ -149,15 +160,14 @@ func (w *Wishlist) onResponse(r *colly.Response) {
 	}
 
 	if strings.Contains(string(r.Body), robotMessage) {
-		log.Fatalln("Error: Amazon is not showing the wishlist because it thinks I'm a robot :(")
+		w.errors = append(w.errors, errors.New("Amazon is not showing the wishlist because it thinks I'm a robot :("))
 	}
 
 	if w.DebugMode {
 		filename := fmt.Sprintf("wishlist-%s-%s.html", w.id, r.FileName())
 		fmt.Printf("Saving wishlist HTML source to %s...\n", filename)
 		if err := r.Save(filename); err != nil {
-			log.Println("Error: failed to save wishlist HTML to file")
-			log.Fatalln(err)
+			w.errors = append(w.errors, err)
 		}
 	}
 }
