@@ -11,9 +11,10 @@ import (
 )
 
 type Wishlist struct {
-	url   string
-	id    string
-	items map[string]*Item
+	DebugMode bool
+	url       string
+	id        string
+	items     map[string]*Item
 }
 
 func NewWishlist(urlStr string) (*Wishlist, error) {
@@ -40,9 +41,10 @@ func NewWishlistFromID(id string) (*Wishlist, error) {
 	}
 	url := fmt.Sprintf("https://www.amazon.com/hz/wishlist/ls/%s?reveal=unpurchased&sort=date&layout=standard", id)
 	return &Wishlist{
-		url:   url,
-		id:    id,
-		items: map[string]*Item{},
+		DebugMode: false,
+		url:       url,
+		id:        id,
+		items:     map[string]*Item{},
 	}, nil
 }
 
@@ -51,7 +53,9 @@ func (w *Wishlist) Items() (map[string]*Item, error) {
 	var err error
 	c.OnResponse(func(r *colly.Response) {
 		fmt.Printf("Status %d\n", r.StatusCode)
-		err = ioutil.WriteFile(fmt.Sprintf("wishlist-%s.html", w.id), r.Body, 0644)
+		if w.DebugMode {
+			err = ioutil.WriteFile(fmt.Sprintf("wishlist-%s.html", w.id), r.Body, 0644)
+		}
 	})
 	if err != nil {
 		return nil, err
