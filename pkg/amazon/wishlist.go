@@ -13,11 +13,12 @@ import (
 )
 
 type Wishlist struct {
-	DebugMode bool
-	proxyURLs []string
-	url       string
-	id        string
-	items     map[string]*Item
+	DebugMode    bool
+	CacheResults bool
+	proxyURLs    []string
+	url          string
+	id           string
+	items        map[string]*Item
 }
 
 func NewWishlist(urlStr string) (*Wishlist, error) {
@@ -44,11 +45,12 @@ func NewWishlistFromID(id string) (*Wishlist, error) {
 	}
 	url := fmt.Sprintf("https://www.amazon.com/hz/wishlist/ls/%s?reveal=unpurchased&sort=date&layout=standard&viewType=list&filter=DEFAULT&type=wishlist", id)
 	return &Wishlist{
-		DebugMode: false,
-		url:       url,
-		id:        id,
-		items:     map[string]*Item{},
-		proxyURLs: []string{},
+		DebugMode:    false,
+		url:          url,
+		id:           id,
+		items:        map[string]*Item{},
+		proxyURLs:    []string{},
+		CacheResults: true,
 	}, nil
 }
 
@@ -64,12 +66,17 @@ func (w *Wishlist) SetProxyURLs(urls ...string) {
 }
 
 const robotMessage = "we just need to make sure you're not a robot"
+const cachePath = "./cache"
 
 func (w *Wishlist) Items() (map[string]*Item, error) {
-	c := colly.NewCollector(
-		colly.CacheDir("./cache"),
-		colly.Async(true),
-	)
+	options := []func(*colly.Collector){colly.Async(true)}
+	if w.CacheResults {
+		if w.DebugMode {
+			fmt.Println("Caching Amazon responses in", cachePath)
+		}
+		options = append(options, colly.CacheDir(cachePath))
+	}
+	c := colly.NewCollector(options...)
 	defer c.Wait()
 
 	extensions.RandomUserAgent(c)
