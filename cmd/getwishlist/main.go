@@ -10,17 +10,12 @@ import (
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Println("Usage: Amazon_wishlist_URL [-d] [proxy URL]...")
-		fmt.Println("\t-d to enable debug mode")
+		fmt.Println("Usage: Amazon_wishlist_URL [proxy URL]...")
 		fmt.Println("\tspecify optional proxy URLs at the end")
 		os.Exit(1)
 	}
 	url := os.Args[1]
 	fmt.Printf("Got URL: %s\n", url)
-	debugMode := false
-	if len(os.Args) > 2 {
-		debugMode = os.Args[2] == "-d"
-	}
 
 	proxyURLs := []string{}
 	if len(os.Args) > 3 {
@@ -34,14 +29,8 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	wishlist.DebugMode = debugMode
+	wishlist.DebugMode = true
 	wishlist.SetProxyURLs(proxyURLs...)
-
-	if wishlist.DebugMode {
-		fmt.Println("Debug mode ON")
-	}
-
-	fmt.Printf("Using URL: %s\n", wishlist)
 
 	items, err := wishlist.Items()
 	if err != nil {
