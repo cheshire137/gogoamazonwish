@@ -109,34 +109,9 @@ func (w *Wishlist) Items() (map[string]*Item, error) {
 		w.applyProxies(c)
 	}
 
-	c.OnRequest(func(r *colly.Request) {
-		if w.DebugMode {
-			fmt.Println("Using User-Agent", r.Headers.Get("User-Agent"))
-		}
-		r.Headers.Set("cookie", "i18n-prefs=USD")
-	})
-
-	c.OnResponse(func(r *colly.Response) {
-		if w.DebugMode {
-			fmt.Printf("Status %d\n", r.StatusCode)
-		}
-
-		if strings.Contains(string(r.Body), robotMessage) {
-			log.Fatalln("Error: Amazon is not showing the wishlist because it thinks I'm a robot :(")
-		}
-
-		if w.DebugMode {
-			filename := fmt.Sprintf("wishlist-%s-%s.html", w.id, r.FileName())
-			fmt.Printf("Saving wishlist HTML source to %s...\n", filename)
-			if err := r.Save(filename); err != nil {
-				log.Println("Error: failed to save wishlist HTML to file")
-				log.Fatalln(err)
-			}
-		}
-	})
-
+	c.OnRequest(w.onRequest)
+	c.OnResponse(w.onResponse)
 	c.OnHTML("ul li", w.onListItem)
-
 	c.OnHTML("a.wl-see-more", func(link *colly.HTMLElement) {
 		w.onLoadMoreLink(c, link)
 	})
@@ -159,6 +134,32 @@ func (w *Wishlist) Items() (map[string]*Item, error) {
 
 func (w *Wishlist) String() string {
 	return strings.Join(w.urls, ", ")
+}
+
+func (w *Wishlist) onRequest(r *colly.Request) {
+	if w.DebugMode {
+		fmt.Println("Using User-Agent", r.Headers.Get("User-Agent"))
+	}
+	r.Headers.Set("cookie", "i18n-prefs=USD")
+}
+
+func (w *Wishlist) onResponse(r *colly.Response) {
+	if w.DebugMode {
+		fmt.Printf("Status %d\n", r.StatusCode)
+	}
+
+	if strings.Contains(string(r.Body), robotMessage) {
+		log.Fatalln("Error: Amazon is not showing the wishlist because it thinks I'm a robot :(")
+	}
+
+	if w.DebugMode {
+		filename := fmt.Sprintf("wishlist-%s-%s.html", w.id, r.FileName())
+		fmt.Printf("Saving wishlist HTML source to %s...\n", filename)
+		if err := r.Save(filename); err != nil {
+			log.Println("Error: failed to save wishlist HTML to file")
+			log.Fatalln(err)
+		}
+	}
 }
 
 func (w *Wishlist) onLoadMoreLink(c *colly.Collector, link *colly.HTMLElement) {
