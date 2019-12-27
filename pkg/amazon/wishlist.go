@@ -16,7 +16,7 @@ type Wishlist struct {
 	DebugMode    bool
 	CacheResults bool
 	proxyURLs    []string
-	url          string
+	urls         []string
 	id           string
 	items        map[string]*Item
 }
@@ -46,7 +46,7 @@ func NewWishlistFromID(id string) (*Wishlist, error) {
 	url := fmt.Sprintf("https://www.amazon.com/hz/wishlist/ls/%s?reveal=unpurchased&sort=date&layout=standard&viewType=list&filter=DEFAULT&type=wishlist", id)
 	return &Wishlist{
 		DebugMode:    false,
-		url:          url,
+		urls:         []string{url},
 		id:           id,
 		items:        map[string]*Item{},
 		proxyURLs:    []string{},
@@ -106,7 +106,7 @@ func (w *Wishlist) Items() (map[string]*Item, error) {
 		}
 
 		if w.DebugMode {
-			filename := fmt.Sprintf("wishlist-%s.html", w.id)
+			filename := fmt.Sprintf("wishlist-%s-%s.html", w.id, r.FileName())
 			fmt.Printf("Saving wishlist HTML source to %s...\n", filename)
 			if err := r.Save(filename); err != nil {
 				log.Println("Error: failed to save wishlist HTML to file")
@@ -117,16 +117,20 @@ func (w *Wishlist) Items() (map[string]*Item, error) {
 
 	c.OnHTML("ul li", w.onListItem)
 
+	c.OnHTML("a.wl-see-more", func(link *colly.HTMLElement) {
+		w.onLoadMoreLink(c, link)
+	})
+
 	c.OnError(func(r *colly.Response, e error) {
 		fmt.Printf("Error: status %d\n", r.StatusCode)
 		log.Fatalln(e)
 	})
 
 	if w.DebugMode {
-		fmt.Println("Using URL", w.url)
+		fmt.Println("Using URL", w.urls[0])
 	}
 
-	if err := c.Visit(w.url); err != nil {
+	if err := c.Visit(w.urls[0]); err != nil {
 		return nil, err
 	}
 
@@ -134,7 +138,23 @@ func (w *Wishlist) Items() (map[string]*Item, error) {
 }
 
 func (w *Wishlist) String() string {
-	return w.url
+	return strings.Join(w.urls, ", ")
+}
+
+func (w *Wishlist) onLoadMoreLink(c *colly.Collector, link *colly.HTMLElement) {
+	relativeURL := link.Attr("href")
+	if len(relativeURL) < 1 {
+		return
+	}
+
+	nextPageURL := link.Request.AbsoluteURL(relativeURL)
+	w.urls = append(w.urls, nextPageURL)
+
+	if w.DebugMode {
+		fmt.Println("Found URL to next page", nextPageURL)
+	}
+
+	c.Visit(nextPageURL)
 }
 
 func (w *Wishlist) onListItem(listItem *colly.HTMLElement) {
