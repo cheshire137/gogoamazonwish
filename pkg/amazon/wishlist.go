@@ -48,27 +48,34 @@ func NewWishlistFromID(id string) (*Wishlist, error) {
 	}, nil
 }
 
+const robotMessage = "we just need to make sure you're not a robot"
+
 func (w *Wishlist) Items() (map[string]*Item, error) {
 	c := colly.NewCollector(colly.CacheDir("./cache"))
-	var err error
 	c.OnResponse(func(r *colly.Response) {
 		fmt.Printf("Status %d\n", r.StatusCode)
+		if strings.Contains(string(r.Body), robotMessage) {
+			log.Fatalln("Error: Amazon is not showing the wishlist because it thinks I'm a robot :(")
+		}
 		if w.DebugMode {
-			err = ioutil.WriteFile(fmt.Sprintf("wishlist-%s.html", w.id), r.Body, 0644)
+			filename := fmt.Sprintf("wishlist-%s.html", w.id)
+			fmt.Printf("Saving wishlist HTML source to %s...\n", filename)
+			if err := ioutil.WriteFile(filename, r.Body, 0644); err != nil {
+				log.Println("Error: failed to save wishlist HTML to file")
+				log.Fatalln(err)
+			}
 		}
 	})
-	if err != nil {
-		return nil, err
-	}
 	c.OnHTML("ul li", w.onListItem)
 	c.OnError(func(r *colly.Response, e error) {
 		fmt.Printf("Error: status %d\n", r.StatusCode)
 		log.Fatalln(e)
 	})
-	err = c.Visit(w.url)
-	if err != nil {
+
+	if err := c.Visit(w.url); err != nil {
 		return nil, err
 	}
+
 	return w.items, nil
 }
 
