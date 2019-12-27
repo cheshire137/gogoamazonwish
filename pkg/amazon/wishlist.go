@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/gocolly/colly"
 	"github.com/gocolly/colly/extensions"
@@ -51,8 +52,16 @@ func NewWishlistFromID(id string) (*Wishlist, error) {
 const robotMessage = "we just need to make sure you're not a robot"
 
 func (w *Wishlist) Items() (map[string]*Item, error) {
-	c := colly.NewCollector(colly.CacheDir("./cache"))
+	c := colly.NewCollector(
+		colly.CacheDir("./cache"),
+		colly.Async(true),
+	)
+	defer c.Wait()
 	extensions.RandomUserAgent(c)
+	c.Limit(&colly.LimitRule{
+		RandomDelay: 2 * time.Second,
+		Parallelism: 4,
+	})
 
 	c.OnRequest(func(r *colly.Request) {
 		if w.DebugMode {
