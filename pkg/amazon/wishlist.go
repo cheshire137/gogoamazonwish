@@ -97,7 +97,9 @@ func (w *Wishlist) Items() (map[string]*Item, error) {
 	})
 
 	c.OnResponse(func(r *colly.Response) {
-		fmt.Printf("Status %d\n", r.StatusCode)
+		if w.DebugMode {
+			fmt.Printf("Status %d\n", r.StatusCode)
+		}
 
 		if strings.Contains(string(r.Body), robotMessage) {
 			log.Fatalln("Error: Amazon is not showing the wishlist because it thinks I'm a robot :(")
@@ -119,6 +121,10 @@ func (w *Wishlist) Items() (map[string]*Item, error) {
 		fmt.Printf("Error: status %d\n", r.StatusCode)
 		log.Fatalln(e)
 	})
+
+	if w.DebugMode {
+		fmt.Println("Using URL", w.url)
+	}
 
 	if err := c.Visit(w.url); err != nil {
 		return nil, err
@@ -200,10 +206,13 @@ func (w *Wishlist) applyProxies(c *colly.Collector) error {
 	if w.DebugMode {
 		fmt.Printf("Using proxies: %v\n", w.proxyURLs)
 	}
+
 	proxySwitcher, err := proxy.RoundRobinProxySwitcher(w.proxyURLs...)
 	if err != nil {
 		return err
 	}
+
 	c.SetProxyFunc(proxySwitcher)
+
 	return nil
 }
