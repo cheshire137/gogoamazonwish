@@ -19,12 +19,18 @@ const (
 
 // Wishlist represents an Amazon wishlist of products.
 type Wishlist struct {
-	DebugMode    bool
+	// DebugMode specifies whether messages should be logged to STDOUT about
+	// what's going on, as well as if the HTML source of the wishlist should
+	// be saved to files.
+	DebugMode bool
+
+	// CacheResults determines whether responses from Amazon should be cached.
 	CacheResults bool
-	proxyURLs    []string
-	urls         []string
-	id           string
-	items        map[string]*Item
+
+	proxyURLs []string
+	urls      []string
+	id        string
+	items     map[string]*Item
 }
 
 // NewWishlist constructs an Amazon wishlist for the given URL.

@@ -6,10 +6,20 @@ import (
 
 // Item represents a product on an Amazon wishlist.
 type Item struct {
+	// DirectURL is the URL to view this product on Amazon.
 	DirectURL string
-	Name      string
-	Price     string
-	ID        string
+
+	// Name is the name of this product.
+	Name string
+
+	// Price is a string representation of the cost of this product on Amazon.
+	Price string
+
+	// ID is a unique identifier for this product on Amazon.
+	ID string
+
+	// DateAdded is a string representation of when this item was added to the
+	// wishlist.
 	DateAdded string
 }
 
