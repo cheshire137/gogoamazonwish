@@ -52,6 +52,11 @@ const robotMessage = "we just need to make sure you're not a robot"
 
 func (w *Wishlist) Items() (map[string]*Item, error) {
 	c := colly.NewCollector(colly.CacheDir("./cache"))
+
+	c.OnRequest(func(r *colly.Request) {
+		r.Headers.Set("cookie", "i18n-prefs=USD")
+	})
+
 	c.OnResponse(func(r *colly.Response) {
 		fmt.Printf("Status %d\n", r.StatusCode)
 		if strings.Contains(string(r.Body), robotMessage) {
@@ -66,7 +71,9 @@ func (w *Wishlist) Items() (map[string]*Item, error) {
 			}
 		}
 	})
+
 	c.OnHTML("ul li", w.onListItem)
+
 	c.OnError(func(r *colly.Response, e error) {
 		fmt.Printf("Error: status %d\n", r.StatusCode)
 		log.Fatalln(e)
