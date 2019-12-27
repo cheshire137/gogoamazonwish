@@ -39,7 +39,7 @@ func NewWishlistFromID(id string) (*Wishlist, error) {
 	if len(id) < 1 {
 		return nil, fmt.Errorf("ID '%s' does not look like an Amazon wishlist ID", id)
 	}
-	url := fmt.Sprintf("https://www.amazon.com/hz/wishlist/ls/%s?reveal=unpurchased&sort=date&layout=standard", id)
+	url := fmt.Sprintf("https://www.amazon.com/hz/wishlist/ls/%s?reveal=unpurchased&sort=date&layout=standard&viewType=list&filter=DEFAULT&type=wishlist", id)
 	return &Wishlist{
 		DebugMode: false,
 		url:       url,
