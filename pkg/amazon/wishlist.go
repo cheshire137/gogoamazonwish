@@ -9,10 +9,12 @@ import (
 
 	"github.com/gocolly/colly"
 	"github.com/gocolly/colly/extensions"
+	"github.com/gocolly/colly/proxy"
 )
 
 type Wishlist struct {
 	DebugMode bool
+	proxyURLs []string
 	url       string
 	id        string
 	items     map[string]*Item
@@ -46,7 +48,19 @@ func NewWishlistFromID(id string) (*Wishlist, error) {
 		url:       url,
 		id:        id,
 		items:     map[string]*Item{},
+		proxyURLs: []string{},
 	}, nil
+}
+
+func (w *Wishlist) SetProxyURLs(urls ...string) {
+	w.proxyURLs = make([]string, len(urls))
+	for i, url := range urls {
+		if strings.HasPrefix(url, "socks5://") {
+			w.proxyURLs[i] = url
+		} else {
+			w.proxyURLs[i] = fmt.Sprintf("socks5://%s", url)
+		}
+	}
 }
 
 const robotMessage = "we just need to make sure you're not a robot"
@@ -57,11 +71,16 @@ func (w *Wishlist) Items() (map[string]*Item, error) {
 		colly.Async(true),
 	)
 	defer c.Wait()
+
 	extensions.RandomUserAgent(c)
 	c.Limit(&colly.LimitRule{
 		RandomDelay: 2 * time.Second,
 		Parallelism: 4,
 	})
+
+	if len(w.proxyURLs) > 0 {
+		w.applyProxies(c)
+	}
 
 	c.OnRequest(func(r *colly.Request) {
 		if w.DebugMode {
@@ -168,4 +187,16 @@ func (w *Wishlist) onListItemDateAdded(id string, dateEl *colly.HTMLElement) {
 			}
 		}
 	}
+}
+
+func (w *Wishlist) applyProxies(c *colly.Collector) error {
+	if w.DebugMode {
+		fmt.Printf("Using proxies: %v\n", w.proxyURLs)
+	}
+	proxySwitcher, err := proxy.RoundRobinProxySwitcher(w.proxyURLs...)
+	if err != nil {
+		return err
+	}
+	c.SetProxyFunc(proxySwitcher)
+	return nil
 }
