@@ -15,6 +15,7 @@ import (
 const (
 	robotMessage = "we just need to make sure you're not a robot"
 	cachePath    = "./cache"
+	proxyPrefix  = "socks5://"
 )
 
 // Wishlist represents an Amazon wishlist of products.
@@ -39,14 +40,17 @@ func NewWishlist(urlStr string) (*Wishlist, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	if !uri.IsAbs() {
 		return nil, fmt.Errorf("URL '%s' is not an absolute URL to an Amazon wishlist",
 			urlStr)
 	}
+
 	if !strings.Contains(strings.ToLower(uri.Hostname()), "amazon") {
 		return nil, fmt.Errorf("URL '%s' does not look like an Amazon wishlist URL",
 			urlStr)
 	}
+
 	pathParts := strings.Split(uri.EscapedPath(), "/")
 	id := pathParts[len(pathParts)-1]
 	return NewWishlistFromID(id)
@@ -57,14 +61,15 @@ func NewWishlistFromID(id string) (*Wishlist, error) {
 	if len(id) < 1 {
 		return nil, fmt.Errorf("ID '%s' does not look like an Amazon wishlist ID", id)
 	}
+
 	url := fmt.Sprintf("https://www.amazon.com/hz/wishlist/ls/%s?reveal=unpurchased&sort=date&layout=standard&viewType=list&filter=DEFAULT&type=wishlist", id)
 	return &Wishlist{
 		DebugMode:    false,
+		CacheResults: true,
 		urls:         []string{url},
 		id:           id,
 		items:        map[string]*Item{},
 		proxyURLs:    []string{},
-		CacheResults: true,
 	}, nil
 }
 
@@ -73,10 +78,10 @@ func NewWishlistFromID(id string) (*Wishlist, error) {
 func (w *Wishlist) SetProxyURLs(urls ...string) {
 	w.proxyURLs = make([]string, len(urls))
 	for i, url := range urls {
-		if strings.HasPrefix(url, "socks5://") {
+		if strings.HasPrefix(url, proxyPrefix) {
 			w.proxyURLs[i] = url
 		} else {
-			w.proxyURLs[i] = fmt.Sprintf("socks5://%s", url)
+			w.proxyURLs[i] = fmt.Sprintf("%s%s", proxyPrefix, url)
 		}
 	}
 }
