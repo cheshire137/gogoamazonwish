@@ -2,7 +2,6 @@ package amazon
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/url"
 	"strings"
@@ -59,13 +58,15 @@ func (w *Wishlist) Items() (map[string]*Item, error) {
 
 	c.OnResponse(func(r *colly.Response) {
 		fmt.Printf("Status %d\n", r.StatusCode)
+
 		if strings.Contains(string(r.Body), robotMessage) {
 			log.Fatalln("Error: Amazon is not showing the wishlist because it thinks I'm a robot :(")
 		}
+
 		if w.DebugMode {
 			filename := fmt.Sprintf("wishlist-%s.html", w.id)
 			fmt.Printf("Saving wishlist HTML source to %s...\n", filename)
-			if err := ioutil.WriteFile(filename, r.Body, 0644); err != nil {
+			if err := r.Save(filename); err != nil {
 				log.Println("Error: failed to save wishlist HTML to file")
 				log.Fatalln(err)
 			}
