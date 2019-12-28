@@ -13,9 +13,10 @@ import (
 )
 
 const (
-	robotMessage = "we just need to make sure you're not a robot"
-	cachePath    = "./cache"
-	proxyPrefix  = "socks5://"
+	robotMessage  = "we just need to make sure you're not a robot"
+	cachePath     = "./cache"
+	proxyPrefix   = "socks5://"
+	addToCartText = "add to cart"
 )
 
 // Wishlist represents an Amazon wishlist of products.
@@ -203,6 +204,34 @@ func (w *Wishlist) onListItem(listItem *colly.HTMLElement) {
 	listItem.ForEach(".dateAddedText", func(index int, dateEl *colly.HTMLElement) {
 		w.onListItemDateAdded(id, dateEl)
 	})
+	listItem.ForEach("[data-action='add-to-cart']", func(index int, container *colly.HTMLElement) {
+		w.onAddToCartContainer(id, container)
+	})
+}
+
+func (w *Wishlist) onAddToCartContainer(id string, container *colly.HTMLElement) {
+	container.ForEach("a", func(index int, link *colly.HTMLElement) {
+		w.onAddToCartLink(id, link)
+	})
+}
+
+func (w *Wishlist) onAddToCartLink(id string, link *colly.HTMLElement) {
+	linkText := strings.ToLower(link.Text)
+	if !strings.Contains(linkText, addToCartText) {
+		return
+	}
+
+	item := w.items[id]
+	if item == nil {
+		return
+	}
+
+	relativeURL := link.Attr("href")
+	if len(relativeURL) < 1 {
+		return
+	}
+
+	item.AddToCartURL = link.Request.AbsoluteURL(relativeURL)
 }
 
 func (w *Wishlist) onListItemLink(id string, link *colly.HTMLElement) {

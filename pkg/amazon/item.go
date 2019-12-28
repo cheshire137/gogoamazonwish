@@ -9,6 +9,10 @@ type Item struct {
 	// DirectURL is the URL to view this product on Amazon.
 	DirectURL string
 
+	// AddToCartURL is the URL to add this product to your shopping cart on Amazon,
+	// tied to the particular wishlist it came from.
+	AddToCartURL string
+
 	// Name is the name of this product.
 	Name string
 
@@ -23,26 +27,36 @@ type Item struct {
 	DateAdded string
 }
 
+// URL returns a string URL to this product on Amazon. Prefers the link that
+// ties this product to the wishlist it came from, if known.
+func (i *Item) URL() string {
+	if i.AddToCartURL != "" {
+		return i.AddToCartURL
+	}
+	return i.DirectURL
+}
+
 // String returns a description of this product.
 func (i *Item) String() string {
-	if i.DateAdded != "" && i.Price != "" && i.Name != "" && i.DirectURL != "" {
+	url := i.URL()
+	if i.DateAdded != "" && i.Price != "" && i.Name != "" && url != "" {
 		return fmt.Sprintf("%s %s\n\tAdded: %s\n\t<%s>", i.Name, i.Price, i.DateAdded,
-			i.DirectURL)
+			url)
 	}
-	if i.Price != "" && i.Name != "" && i.DirectURL != "" {
-		return fmt.Sprintf("%s %s\n\t<%s>", i.Name, i.Price, i.DirectURL)
+	if i.Price != "" && i.Name != "" && url != "" {
+		return fmt.Sprintf("%s %s\n\t<%s>", i.Name, i.Price, url)
 	}
-	if i.DateAdded != "" && i.Name != "" && i.DirectURL != "" {
-		return fmt.Sprintf("%s\n\tAdded: %s\n\t<%s>", i.Name, i.DateAdded, i.DirectURL)
+	if i.DateAdded != "" && i.Name != "" && url != "" {
+		return fmt.Sprintf("%s\n\tAdded: %s\n\t<%s>", i.Name, i.DateAdded, url)
 	}
-	if i.Name != "" && i.DirectURL != "" {
-		return fmt.Sprintf("%s\n\t<%s>", i.Name, i.DirectURL)
+	if i.Name != "" && url != "" {
+		return fmt.Sprintf("%s\n\t<%s>", i.Name, url)
 	}
 	if i.Name != "" {
 		return i.Name
 	}
-	if i.DirectURL != "" {
-		return i.DirectURL
+	if url != "" {
+		return url
 	}
 	if i.ID != "" {
 		return i.ID
