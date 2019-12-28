@@ -6,6 +6,10 @@ import (
 
 // Item represents a product on an Amazon wishlist.
 type Item struct {
+	// IsPrime indicates whether the product is eligible for Amazon Prime free
+	// shipping.
+	IsPrime bool
+
 	// DirectURL is the URL to view this product on Amazon.
 	DirectURL string
 
@@ -67,6 +71,10 @@ func (i *Item) String() string {
 		sb.WriteString("\tAdded ")
 		sb.WriteString(i.DateAdded)
 		sb.WriteString("\n")
+	}
+
+	if i.IsPrime {
+		sb.WriteString("\tPrime\n")
 	}
 
 	if url != "" {

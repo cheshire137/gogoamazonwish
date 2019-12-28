@@ -213,6 +213,18 @@ func (w *Wishlist) onListItem(listItem *colly.HTMLElement) {
 	listItem.ForEach(".reviewStarsPopoverLink", func(index int, container *colly.HTMLElement) {
 		w.onRatingContainer(id, container)
 	})
+	listItem.ForEach(".a-icon-prime", func(index int, primeIndicator *colly.HTMLElement) {
+		w.onPrime(id, primeIndicator)
+	})
+}
+
+func (w *Wishlist) onPrime(id string, primeIndicator *colly.HTMLElement) {
+	item := w.items[id]
+	if item == nil {
+		return
+	}
+
+	item.IsPrime = true
 }
 
 func (w *Wishlist) onRatingContainer(id string, container *colly.HTMLElement) {
@@ -290,6 +302,7 @@ func (w *Wishlist) onLink(id string, link *colly.HTMLElement) {
 		DirectURL: link.Request.AbsoluteURL(relativeURL),
 		Name:      title,
 		ID:        id,
+		IsPrime:   false,
 	}
 }
 
