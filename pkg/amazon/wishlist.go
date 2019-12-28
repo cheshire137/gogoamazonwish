@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -13,10 +14,11 @@ import (
 )
 
 const (
-	robotMessage  = "we just need to make sure you're not a robot"
-	cachePath     = "./cache"
-	proxyPrefix   = "socks5://"
-	addToCartText = "add to cart"
+	robotMessage        = "we just need to make sure you're not a robot"
+	cachePath           = "./cache"
+	proxyPrefix         = "socks5://"
+	addToCartText       = "add to cart"
+	reviewCountIDPrefix = "review_count_"
 )
 
 // Wishlist represents an Amazon wishlist of products.
@@ -290,7 +292,38 @@ func (w *Wishlist) onAddToCartLink(id string, link *colly.HTMLElement) {
 	item.AddToCartURL = link.Request.AbsoluteURL(relativeURL)
 }
 
+func (w *Wishlist) onReviewCountLink(id string, link *colly.HTMLElement) {
+	item := w.items[id]
+	if item == nil {
+		return
+	}
+
+	reviewCountStr := strings.TrimSpace(link.Text)
+	if reviewCountStr != "" {
+		reviewCountStr = strings.Replace(reviewCountStr, ",", "", -1)
+		reviewCountStr = strings.Replace(reviewCountStr, ".", "", -1)
+		reviewCount, err := strconv.ParseInt(reviewCountStr, 10, 64)
+		if err != nil {
+			w.errors = append(w.errors, err)
+			return
+		}
+
+		item.ReviewCount = int(reviewCount)
+	}
+
+	relativeURL := link.Attr("href")
+	if relativeURL != "" {
+		item.ReviewsURL = link.Request.AbsoluteURL(relativeURL)
+	}
+}
+
 func (w *Wishlist) onLink(id string, link *colly.HTMLElement) {
+	linkID := link.Attr("id")
+	if len(linkID) > 0 && strings.HasPrefix(linkID, reviewCountIDPrefix) {
+		w.onReviewCountLink(id, link)
+		return
+	}
+
 	title := link.Attr("title")
 	if len(title) < 1 {
 		return
@@ -302,10 +335,11 @@ func (w *Wishlist) onLink(id string, link *colly.HTMLElement) {
 	}
 
 	w.items[id] = &Item{
-		DirectURL: link.Request.AbsoluteURL(relativeURL),
-		Name:      title,
-		ID:        id,
-		IsPrime:   false,
+		DirectURL:   link.Request.AbsoluteURL(relativeURL),
+		Name:        title,
+		ID:          id,
+		IsPrime:     false,
+		ReviewCount: 0,
 	}
 }
 

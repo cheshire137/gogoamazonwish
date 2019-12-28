@@ -1,6 +1,7 @@
 package amazon
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -19,6 +20,12 @@ type Item struct {
 
 	// ImageURL is the URL of an image that represents this product.
 	ImageURL string
+
+	// ReviewsURL is the URL to view customer reviews of this product.
+	ReviewsURL string
+
+	// ReviewCount is how many reviews customers have left for this product on Amazon.
+	ReviewCount int
 
 	// Name is the name of this product.
 	Name string
@@ -75,6 +82,22 @@ func (i *Item) String() string {
 
 	if i.IsPrime {
 		sb.WriteString("\tPrime\n")
+	}
+
+	if i.ReviewCount > 0 || i.ReviewsURL != "" {
+		sb.WriteString("\t")
+		if i.ReviewCount > 0 {
+			units := "review"
+			if i.ReviewCount != 1 {
+				units = units + "s"
+			}
+			sb.WriteString(fmt.Sprintf("%d %s", i.ReviewCount, units))
+		}
+		if i.ReviewsURL != "" {
+			sb.WriteString(" <")
+			sb.WriteString(i.ReviewsURL)
+			sb.WriteString(">\n")
+		}
 	}
 
 	if url != "" {
