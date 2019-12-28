@@ -207,6 +207,29 @@ func (w *Wishlist) onListItem(listItem *colly.HTMLElement) {
 	listItem.ForEach("[data-action='add-to-cart']", func(index int, container *colly.HTMLElement) {
 		w.onAddToCartContainer(id, container)
 	})
+	listItem.ForEach(".g-itemImage", func(index int, container *colly.HTMLElement) {
+		w.onListItemImageContainer(id, container)
+	})
+}
+
+func (w *Wishlist) onListItemImageContainer(id string, container *colly.HTMLElement) {
+	container.ForEach("img", func(index int, image *colly.HTMLElement) {
+		w.onListItemImage(id, image)
+	})
+}
+
+func (w *Wishlist) onListItemImage(id string, image *colly.HTMLElement) {
+	item := w.items[id]
+	if item == nil {
+		return
+	}
+
+	relativeURL := image.Attr("src")
+	if len(relativeURL) < 1 {
+		return
+	}
+
+	item.ImageURL = image.Request.AbsoluteURL(relativeURL)
 }
 
 func (w *Wishlist) onAddToCartContainer(id string, container *colly.HTMLElement) {
