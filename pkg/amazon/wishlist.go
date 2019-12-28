@@ -196,29 +196,47 @@ func (w *Wishlist) onListItem(listItem *colly.HTMLElement) {
 	}
 
 	listItem.ForEach("a", func(index int, link *colly.HTMLElement) {
-		w.onListItemLink(id, link)
+		w.onLink(id, link)
 	})
 	listItem.ForEach(".a-price", func(index int, priceEl *colly.HTMLElement) {
-		w.onListItemPrice(id, priceEl)
+		w.onPrice(id, priceEl)
 	})
 	listItem.ForEach(".dateAddedText", func(index int, dateEl *colly.HTMLElement) {
-		w.onListItemDateAdded(id, dateEl)
+		w.onDateAdded(id, dateEl)
 	})
 	listItem.ForEach("[data-action='add-to-cart']", func(index int, container *colly.HTMLElement) {
 		w.onAddToCartContainer(id, container)
 	})
 	listItem.ForEach(".g-itemImage", func(index int, container *colly.HTMLElement) {
-		w.onListItemImageContainer(id, container)
+		w.onImageContainer(id, container)
+	})
+	listItem.ForEach(".reviewStarsPopoverLink", func(index int, container *colly.HTMLElement) {
+		w.onRatingContainer(id, container)
 	})
 }
 
-func (w *Wishlist) onListItemImageContainer(id string, container *colly.HTMLElement) {
+func (w *Wishlist) onRatingContainer(id string, container *colly.HTMLElement) {
+	container.ForEach(".a-icon-alt", func(index int, ratingEl *colly.HTMLElement) {
+		w.onRating(id, ratingEl)
+	})
+}
+
+func (w *Wishlist) onRating(id string, ratingEl *colly.HTMLElement) {
+	item := w.items[id]
+	if item == nil {
+		return
+	}
+
+	item.Rating = strings.TrimSpace(ratingEl.Text)
+}
+
+func (w *Wishlist) onImageContainer(id string, container *colly.HTMLElement) {
 	container.ForEach("img", func(index int, image *colly.HTMLElement) {
-		w.onListItemImage(id, image)
+		w.onImage(id, image)
 	})
 }
 
-func (w *Wishlist) onListItemImage(id string, image *colly.HTMLElement) {
+func (w *Wishlist) onImage(id string, image *colly.HTMLElement) {
 	item := w.items[id]
 	if item == nil {
 		return
@@ -257,7 +275,7 @@ func (w *Wishlist) onAddToCartLink(id string, link *colly.HTMLElement) {
 	item.AddToCartURL = link.Request.AbsoluteURL(relativeURL)
 }
 
-func (w *Wishlist) onListItemLink(id string, link *colly.HTMLElement) {
+func (w *Wishlist) onLink(id string, link *colly.HTMLElement) {
 	title := link.Attr("title")
 	if len(title) < 1 {
 		return
@@ -275,7 +293,7 @@ func (w *Wishlist) onListItemLink(id string, link *colly.HTMLElement) {
 	}
 }
 
-func (w *Wishlist) onListItemPrice(id string, priceEl *colly.HTMLElement) {
+func (w *Wishlist) onPrice(id string, priceEl *colly.HTMLElement) {
 	item := w.items[id]
 	if item == nil {
 		return
@@ -284,7 +302,7 @@ func (w *Wishlist) onListItemPrice(id string, priceEl *colly.HTMLElement) {
 	item.Price = priceEl.ChildText(".a-offscreen")
 }
 
-func (w *Wishlist) onListItemDateAdded(id string, dateEl *colly.HTMLElement) {
+func (w *Wishlist) onDateAdded(id string, dateEl *colly.HTMLElement) {
 	item := w.items[id]
 	if item == nil {
 		return

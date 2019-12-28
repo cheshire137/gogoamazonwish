@@ -1,7 +1,6 @@
 package amazon
 
 import (
-	"fmt"
 	"strings"
 )
 
@@ -29,6 +28,10 @@ type Item struct {
 	// DateAdded is a string representation of when this item was added to the
 	// wishlist.
 	DateAdded string
+
+	// Rating is a string description of how Amazon customers have rated this
+	// product.
+	Rating string
 }
 
 // URL returns a string URL to this product on Amazon. Prefers the link that
@@ -45,20 +48,23 @@ func (i *Item) String() string {
 	var sb strings.Builder
 	url := i.URL()
 
-	line1 := fmt.Sprintf("%s%s", i.Name, i.Price)
 	if i.Name != "" {
 		sb.WriteString(i.Name)
+		sb.WriteString("\n")
 	}
-	if i.Price != "" {
-		sb.WriteString(" ")
-		sb.WriteString(i.Price)
-	}
-	if line1 != "" {
+
+	line := strings.TrimSpace(strings.Join([]string{
+		i.Price,
+		i.Rating,
+	}, " "))
+	if line != "" {
+		sb.WriteString("\t")
+		sb.WriteString(line)
 		sb.WriteString("\n")
 	}
 
 	if i.DateAdded != "" {
-		sb.WriteString("\tAdded: ")
+		sb.WriteString("\tAdded ")
 		sb.WriteString(i.DateAdded)
 		sb.WriteString("\n")
 	}
