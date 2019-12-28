@@ -190,17 +190,19 @@ func (w *Wishlist) onLoadMoreLink(c *colly.Collector, link *colly.HTMLElement) {
 
 func (w *Wishlist) onListItem(listItem *colly.HTMLElement) {
 	id := listItem.Attr("data-itemid")
-	if len(id) > 0 {
-		listItem.ForEach("a", func(index int, link *colly.HTMLElement) {
-			w.onListItemLink(id, link)
-		})
-		listItem.ForEach(".a-price", func(index int, priceEl *colly.HTMLElement) {
-			w.onListItemPrice(id, priceEl)
-		})
-		listItem.ForEach(".dateAddedText", func(index int, dateEl *colly.HTMLElement) {
-			w.onListItemDateAdded(id, dateEl)
-		})
+	if len(id) < 1 {
+		return
 	}
+
+	listItem.ForEach("a", func(index int, link *colly.HTMLElement) {
+		w.onListItemLink(id, link)
+	})
+	listItem.ForEach(".a-price", func(index int, priceEl *colly.HTMLElement) {
+		w.onListItemPrice(id, priceEl)
+	})
+	listItem.ForEach(".dateAddedText", func(index int, dateEl *colly.HTMLElement) {
+		w.onListItemDateAdded(id, dateEl)
+	})
 }
 
 func (w *Wishlist) onListItemLink(id string, link *colly.HTMLElement) {
