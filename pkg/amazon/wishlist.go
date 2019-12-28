@@ -201,6 +201,9 @@ func (w *Wishlist) onListItem(listItem *colly.HTMLElement) {
 	listItem.ForEach(".a-price", func(index int, priceEl *colly.HTMLElement) {
 		w.onPrice(id, priceEl)
 	})
+	listItem.ForEach(".itemUsedAndNewPrice", func(index int, priceEl *colly.HTMLElement) {
+		w.onBackupPrice(id, priceEl)
+	})
 	listItem.ForEach(".dateAddedText", func(index int, dateEl *colly.HTMLElement) {
 		w.onDateAdded(id, dateEl)
 	})
@@ -313,6 +316,19 @@ func (w *Wishlist) onPrice(id string, priceEl *colly.HTMLElement) {
 	}
 
 	item.Price = priceEl.ChildText(".a-offscreen")
+}
+
+func (w *Wishlist) onBackupPrice(id string, priceEl *colly.HTMLElement) {
+	item := w.items[id]
+	if item == nil {
+		return
+	}
+
+	if item.Price != "" {
+		return
+	}
+
+	item.Price = priceEl.Text
 }
 
 func (w *Wishlist) onDateAdded(id string, dateEl *colly.HTMLElement) {

@@ -37,10 +37,10 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	fmt.Printf("Found %d item(s):\n", len(items))
+	fmt.Printf("Found %d item(s):\n\n", len(items))
 	number := 1
 	for _, item := range items {
-		fmt.Printf("%d) %s\n", number, item)
+		fmt.Printf("%d) %s\n\n", number, item)
 		number++
 	}
 }
