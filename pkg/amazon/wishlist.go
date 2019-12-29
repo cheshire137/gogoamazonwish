@@ -14,6 +14,10 @@ import (
 )
 
 const (
+	// DefaultAmazonDomain is the domain where an Amazon wishlist will
+	// be assumed to be located if not otherwise specified.
+	DefaultAmazonDomain = "https://www.amazon.com"
+
 	robotMessage         = "we just need to make sure you're not a robot"
 	cachePath            = "./cache"
 	proxyPrefix          = "socks5://"
@@ -52,11 +56,6 @@ func NewWishlist(urlStr string) (*Wishlist, error) {
 			urlStr)
 	}
 
-	if !strings.Contains(strings.ToLower(uri.Hostname()), "amazon") {
-		return nil, fmt.Errorf("URL '%s' does not look like an Amazon wishlist URL",
-			urlStr)
-	}
-
 	pathParts := strings.Split(uri.EscapedPath(), "/")
 	id := pathParts[len(pathParts)-1]
 	return NewWishlistFromID(id)
@@ -64,11 +63,25 @@ func NewWishlist(urlStr string) (*Wishlist, error) {
 
 // NewWishlistFromID constructs an Amazon wishlist for the given wishlist ID.
 func NewWishlistFromID(id string) (*Wishlist, error) {
+	return NewWishlistFromIDAtDomain(id, DefaultAmazonDomain)
+}
+
+// NewWishlistFromIDAtDomain constructs an Amazon wishlist for the given
+// wishlist ID at the given Amazon domain, e.g., "https://amazon.com".
+func NewWishlistFromIDAtDomain(id string, amazonDomain string) (*Wishlist, error) {
 	if len(id) < 1 {
-		return nil, fmt.Errorf("ID '%s' does not look like an Amazon wishlist ID", id)
+		return nil, errors.New("No Amazon wishlist ID given")
+	}
+	if len(amazonDomain) < 1 {
+		return nil, errors.New("No Amazon domain specified")
+	}
+	amazonURL, err := url.Parse(amazonDomain)
+	if err != nil {
+		return nil, err
 	}
 
-	url := fmt.Sprintf("https://www.amazon.com/hz/wishlist/ls/%s?reveal=unpurchased&sort=date&layout=standard&viewType=list&filter=DEFAULT&type=wishlist", id)
+	url := fmt.Sprintf("%s://%s/hz/wishlist/ls/%s?reveal=unpurchased&sort=date&layout=standard&viewType=list&filter=DEFAULT&type=wishlist",
+		amazonURL.Scheme, amazonURL.Hostname(), id)
 	return &Wishlist{
 		DebugMode:    false,
 		CacheResults: true,
