@@ -20,6 +20,8 @@ Sample use:
 go run cmd/getwishlist/main.go "https://www.amazon.com/hz/wishlist/ls/3I6EQPZ8OB1DT"
 ```
 
+To run tests: `make`
+
 ## Thanks
 
 - [Colly web scraper](http://go-colly.org)
