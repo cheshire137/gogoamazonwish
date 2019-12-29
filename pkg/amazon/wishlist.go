@@ -80,6 +80,17 @@ func NewWishlistFromID(id string) (*Wishlist, error) {
 	}, nil
 }
 
+// ID returns the identifier for this wishlist on Amazon.
+func (w *Wishlist) ID() string {
+	return w.id
+}
+
+// URLs returns the URLs used to access all the items in the wishlist. Will be
+// extended as necessary when Items is called.
+func (w *Wishlist) URLs() []string {
+	return w.urls
+}
+
 // Errors returns any errors that occurred when trying to load the wishlist.
 func (w *Wishlist) Errors() []error {
 	return w.errors
