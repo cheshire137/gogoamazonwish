@@ -52,6 +52,20 @@ type Item struct {
 	Rating string
 }
 
+// NewItem constructs an Item with the given product identifier, name, and
+// URL to its Amazon page.
+func NewItem(id string, name string, directURL string) *Item {
+	return &Item{
+		DirectURL:      directURL,
+		Name:           name,
+		ID:             id,
+		IsPrime:        false,
+		ReviewCount:    0,
+		RequestedCount: -1,
+		OwnedCount:     -1,
+	}
+}
+
 // URL returns a string URL to this product on Amazon. Prefers the link that
 // ties this product to the wishlist it came from, if known.
 func (i *Item) URL() string {

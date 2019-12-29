@@ -392,15 +392,7 @@ func (w *Wishlist) onLink(id string, link *colly.HTMLElement) {
 		return
 	}
 
-	w.items[id] = &Item{
-		DirectURL:      link.Request.AbsoluteURL(relativeURL),
-		Name:           title,
-		ID:             id,
-		IsPrime:        false,
-		ReviewCount:    0,
-		RequestedCount: -1,
-		OwnedCount:     -1,
-	}
+	w.items[id] = NewItem(id, title, link.Request.AbsoluteURL(relativeURL))
 }
 
 func (w *Wishlist) onPrice(id string, priceEl *colly.HTMLElement) {
