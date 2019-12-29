@@ -14,11 +14,13 @@ import (
 )
 
 const (
-	robotMessage        = "we just need to make sure you're not a robot"
-	cachePath           = "./cache"
-	proxyPrefix         = "socks5://"
-	addToCartText       = "add to cart"
-	reviewCountIDPrefix = "review_count_"
+	robotMessage         = "we just need to make sure you're not a robot"
+	cachePath            = "./cache"
+	proxyPrefix          = "socks5://"
+	addToCartText        = "add to cart"
+	reviewCountIDPrefix  = "review_count_"
+	requestCountIDPrefix = "itemRequested_"
+	ownedCountIDPrefix   = "itemPurchased_"
 )
 
 // Wishlist represents an Amazon wishlist of products.
@@ -221,6 +223,62 @@ func (w *Wishlist) onListItem(listItem *colly.HTMLElement) {
 	listItem.ForEach(".a-icon-prime", func(index int, primeIndicator *colly.HTMLElement) {
 		w.onPrime(id, primeIndicator)
 	})
+	listItem.ForEach("span", func(index int, span *colly.HTMLElement) {
+		w.onSpan(id, span)
+	})
+}
+
+func (w *Wishlist) onSpan(id string, span *colly.HTMLElement) {
+	spanID := span.Attr("id")
+	if len(spanID) < 1 {
+		return
+	}
+
+	if strings.HasPrefix(spanID, requestCountIDPrefix) {
+		w.onRequestedCountSpan(id, span)
+	} else if strings.HasPrefix(spanID, ownedCountIDPrefix) {
+		w.onOwnedCountSpan(id, span)
+	}
+}
+
+func (w *Wishlist) onRequestedCountSpan(id string, span *colly.HTMLElement) {
+	item := w.items[id]
+	if item == nil {
+		return
+	}
+
+	requestedCountStr := span.Text
+	if len(requestedCountStr) < 1 {
+		return
+	}
+
+	requestedCount, err := strconv.ParseInt(requestedCountStr, 10, 64)
+	if err != nil {
+		w.errors = append(w.errors, err)
+		return
+	}
+
+	item.RequestedCount = int(requestedCount)
+}
+
+func (w *Wishlist) onOwnedCountSpan(id string, span *colly.HTMLElement) {
+	item := w.items[id]
+	if item == nil {
+		return
+	}
+
+	ownedCountStr := span.Text
+	if len(ownedCountStr) < 1 {
+		return
+	}
+
+	ownedCount, err := strconv.ParseInt(ownedCountStr, 10, 64)
+	if err != nil {
+		w.errors = append(w.errors, err)
+		return
+	}
+
+	item.OwnedCount = int(ownedCount)
 }
 
 func (w *Wishlist) onPrime(id string, primeIndicator *colly.HTMLElement) {
@@ -335,11 +393,13 @@ func (w *Wishlist) onLink(id string, link *colly.HTMLElement) {
 	}
 
 	w.items[id] = &Item{
-		DirectURL:   link.Request.AbsoluteURL(relativeURL),
-		Name:        title,
-		ID:          id,
-		IsPrime:     false,
-		ReviewCount: 0,
+		DirectURL:      link.Request.AbsoluteURL(relativeURL),
+		Name:           title,
+		ID:             id,
+		IsPrime:        false,
+		ReviewCount:    0,
+		RequestedCount: -1,
+		OwnedCount:     -1,
 	}
 }
 

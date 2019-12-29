@@ -1,7 +1,7 @@
 package amazon
 
 import (
-	"fmt"
+	"strconv"
 	"strings"
 )
 
@@ -26,6 +26,13 @@ type Item struct {
 
 	// ReviewCount is how many reviews customers have left for this product on Amazon.
 	ReviewCount int
+
+	// RequestedCount is how many of the product the wishlist recipient would like
+	// to receive.
+	RequestedCount int
+
+	// OwnedCount is how many of the product the wishlist recipient already owns.
+	OwnedCount int
 
 	// Name is the name of this product.
 	Name string
@@ -91,7 +98,9 @@ func (i *Item) String() string {
 			if i.ReviewCount != 1 {
 				units = units + "s"
 			}
-			sb.WriteString(fmt.Sprintf("%d %s", i.ReviewCount, units))
+			sb.WriteString(strconv.Itoa(i.ReviewCount))
+			sb.WriteString(" ")
+			sb.WriteString(units)
 		}
 		if i.ReviewsURL != "" {
 			sb.WriteString(" <")
@@ -110,6 +119,22 @@ func (i *Item) String() string {
 		sb.WriteString("\tImage: <")
 		sb.WriteString(i.ImageURL)
 		sb.WriteString(">\n")
+	}
+
+	if i.RequestedCount > -1 || i.OwnedCount > -1 {
+		if i.RequestedCount > -1 {
+			sb.WriteString("\tQuantity: ")
+			sb.WriteString(strconv.Itoa(i.RequestedCount))
+		}
+		if i.OwnedCount > -1 {
+			if i.RequestedCount > -1 {
+				sb.WriteString(" / ")
+			} else {
+				sb.WriteString("\t")
+			}
+			sb.WriteString("Has: ")
+			sb.WriteString(strconv.Itoa(i.OwnedCount))
+		}
 	}
 
 	return strings.TrimSuffix(sb.String(), "\n")
