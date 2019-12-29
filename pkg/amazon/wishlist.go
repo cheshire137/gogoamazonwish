@@ -80,8 +80,13 @@ func NewWishlistFromIDAtDomain(id string, amazonDomain string) (*Wishlist, error
 		return nil, err
 	}
 
-	url := fmt.Sprintf("%s://%s/hz/wishlist/ls/%s?reveal=unpurchased&sort=date&layout=standard&viewType=list&filter=DEFAULT&type=wishlist",
-		amazonURL.Scheme, amazonURL.Hostname(), id)
+	port := amazonURL.Port()
+	if port != "" {
+		port = ":" + port
+	}
+
+	url := fmt.Sprintf("%s://%s%s/hz/wishlist/ls/%s?reveal=unpurchased&sort=date&layout=standard&viewType=list&filter=DEFAULT&type=wishlist",
+		amazonURL.Scheme, amazonURL.Hostname(), port, id)
 	return &Wishlist{
 		DebugMode:    false,
 		CacheResults: true,
