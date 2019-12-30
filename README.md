@@ -9,7 +9,7 @@ off a specified wishlist.
 ## How to use
 
 ```sh
-go get -u github.com/cheshire137/gogoamazonwish
+go get -u github.com/cheshire137/gogoamazonwish/pkg/amazon
 ```
 
 ```go
