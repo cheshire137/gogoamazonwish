@@ -6,6 +6,41 @@ A Go library to get items from an Amazon wishlist. Unofficial as Amazon
 shut down their wishlist API. This uses web scraping to get the items
 off a specified wishlist.
 
+## How to use
+
+```sh
+go get -u github.com/cheshire137/gogoamazonwish
+```
+
+```go
+import (
+  "fmt"
+  "log"
+
+  "github.com/cheshire137/gogoamazonwish/pkg/amazon"
+)
+
+func main() {
+  url := "https://www.amazon.com/hz/wishlist/ls/3I6EQPZ8OB1DT"
+  wishlist, err := amazon.NewWishlist(url)
+  if err != nil {
+		log.Fatalln(err)
+  }
+
+  items, err := wishlist.Items()
+	if err != nil {
+		log.Fatalln(err)
+  }
+
+	fmt.Printf("Found %d item(s):\n\n", len(items))
+	number := 1
+	for _itemID, item := range items {
+		fmt.Printf("%d) %s\n\n", number, item)
+		number++
+	}
+}
+```
+
 ## How to develop
 
 I built this with Go version 1.13.4. There's a command-line tool to test
