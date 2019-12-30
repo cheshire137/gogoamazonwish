@@ -25,6 +25,8 @@ const (
 	reviewCountIDPrefix  = "review_count_"
 	requestCountIDPrefix = "itemRequested_"
 	ownedCountIDPrefix   = "itemPurchased_"
+	dateAddedIDPrefix    = "itemAddedDate_"
+	dateAddedPrefix      = "Added "
 )
 
 // Wishlist represents an Amazon wishlist of products.
@@ -237,8 +239,8 @@ func (w *Wishlist) onListItem(listItem *colly.HTMLElement) {
 	listItem.ForEach(".itemUsedAndNewPrice", func(index int, priceEl *colly.HTMLElement) {
 		w.onBackupPrice(id, priceEl)
 	})
-	listItem.ForEach(".dateAddedText", func(index int, dateEl *colly.HTMLElement) {
-		w.onDateAdded(id, dateEl)
+	listItem.ForEach(".dateAddedText", func(index int, container *colly.HTMLElement) {
+		w.onDateAddedContainer(id, container)
 	})
 	listItem.ForEach("[data-action='add-to-cart']", func(index int, container *colly.HTMLElement) {
 		w.onAddToCartContainer(id, container)
@@ -446,27 +448,26 @@ func (w *Wishlist) onBackupPrice(id string, priceEl *colly.HTMLElement) {
 	item.Price = priceEl.Text
 }
 
+func (w *Wishlist) onDateAddedContainer(id string, container *colly.HTMLElement) {
+	container.ForEach("span", func(index int, span *colly.HTMLElement) {
+		spanID := span.Attr("id")
+		if len(spanID) < 1 {
+			return
+		}
+		if !strings.HasPrefix(spanID, dateAddedIDPrefix) {
+			return
+		}
+		w.onDateAdded(id, span)
+	})
+}
+
 func (w *Wishlist) onDateAdded(id string, dateEl *colly.HTMLElement) {
 	item := w.items[id]
 	if item == nil {
 		return
 	}
 
-	childText := dateEl.ChildText("span")
-	if len(childText) < 1 {
-		return
-	}
-
-	lines := strings.Split(childText, "\n")
-	for _, line := range lines {
-		if strings.Contains(line, "Added ") {
-			addedText := strings.Split(line, "Added ")
-			if len(addedText) >= 2 {
-				item.DateAdded = addedText[1]
-				break
-			}
-		}
-	}
+	item.DateAdded = strings.TrimPrefix(dateEl.Text, dateAddedPrefix)
 }
 
 func (w *Wishlist) applyProxies(c *colly.Collector) error {
