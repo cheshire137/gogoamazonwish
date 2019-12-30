@@ -8,6 +8,8 @@ off a specified wishlist.
 
 ## How to use
 
+See [the docs](https://godoc.org/github.com/cheshire137/gogoamazonwish/pkg/amazon).
+
 ```sh
 go get -u github.com/cheshire137/gogoamazonwish/pkg/amazon
 ```
