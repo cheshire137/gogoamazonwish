@@ -8,6 +8,17 @@ import (
 	"github.com/cheshire137/gogoamazonwish/pkg/testutil"
 )
 
+func TestNewWishlist(t *testing.T) {
+	id := "123abc"
+	ts := testutil.NewTestServer(t, id)
+	defer ts.Close()
+
+	wishlist, err := NewWishlist(ts.URL + "/hz/wishlist/ls/123abc")
+
+	require.NoError(t, err)
+	require.Equal(t, "123abc", wishlist.ID())
+}
+
 func TestNewWishlistFromID(t *testing.T) {
 	id := "123abc"
 	wishlist, err := NewWishlistFromID(id)
