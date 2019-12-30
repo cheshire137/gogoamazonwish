@@ -78,7 +78,7 @@ func TestItems(t *testing.T) {
 	require.Equal(t, "4.0 out of 5 stars", item.Rating)
 	require.Equal(t, 930, item.ReviewCount)
 	require.Equal(t, ts.URL+"/product-reviews/B0018CLTKE/?colid=3I6EQPZ8OB1DT&coliid=I2G6UJO0FYWV8J&showViewpoints=1&ref_=lv_vv_lig_pr_rc", item.ReviewsURL)
-	require.True(t, item.IsPrime)
+	require.True(t, item.IsPrime, "should be marked as a Prime item")
 	require.NotEqual(t, "", item.AddToCartURL)
 	require.Contains(t, item.AddToCartURL, ts.URL)
 	require.Contains(t, item.AddToCartURL, itemID)
