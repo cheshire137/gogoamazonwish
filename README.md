@@ -1,6 +1,6 @@
 # GoGo Amazon Wish
 
-![Test CI status](https://github.com/cheshire137/gogoamazonwish/.github/workflows/test.yml/badge.svg)
+![](https://github.com/cheshire137/gogoamazonwish/workflows/.github/workflows/test.yml/badge.svg)
 
 A Go library to get items from an Amazon wishlist. Unofficial as Amazon
 shut down their wishlist API. This uses web scraping to get the items
