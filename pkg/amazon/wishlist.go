@@ -137,14 +137,7 @@ func (w *Wishlist) SetProxyURLs(urls ...string) {
 // Items returns a map of the products on the wishlist, where keys are
 // the product IDs and the values are the products.
 func (w *Wishlist) Items() (map[string]*Item, error) {
-	options := []func(*colly.Collector){colly.Async(true)}
-	if w.CacheResults {
-		if w.DebugMode {
-			fmt.Println("Caching Amazon responses in", cachePath)
-		}
-		options = append(options, colly.CacheDir(cachePath))
-	}
-	c := colly.NewCollector(options...)
+	c := w.collector()
 
 	extensions.RandomUserAgent(c)
 	c.Limit(&colly.LimitRule{
@@ -187,6 +180,17 @@ func (w *Wishlist) Items() (map[string]*Item, error) {
 
 func (w *Wishlist) String() string {
 	return strings.Join(w.urls, ", ")
+}
+
+func (w *Wishlist) collector() *colly.Collector {
+	options := []func(*colly.Collector){colly.Async(true)}
+	if w.CacheResults {
+		if w.DebugMode {
+			fmt.Println("Caching Amazon responses in", cachePath)
+		}
+		options = append(options, colly.CacheDir(cachePath))
+	}
+	return colly.NewCollector(options...)
 }
 
 func (w *Wishlist) onRequest(r *colly.Request) {
