@@ -139,17 +139,11 @@ func (w *Wishlist) SetProxyURLs(urls ...string) {
 func (w *Wishlist) Items() (map[string]*Item, error) {
 	c := w.collector()
 
-	c.OnRequest(w.onRequest)
-	c.OnResponse(w.onResponse)
 	c.OnHTML("ul li", w.onListItem)
 	c.OnHTML("a.wl-see-more", func(link *colly.HTMLElement) {
 		w.onLoadMoreLink(c, link)
 	})
 	c.OnHTML("#profile-list-name", w.onName)
-
-	c.OnError(func(r *colly.Response, e error) {
-		w.errors = append(w.errors, e)
-	})
 
 	if w.DebugMode {
 		fmt.Println("Using URL", w.urls[0])
@@ -191,6 +185,12 @@ func (w *Wishlist) collector() *colly.Collector {
 	if len(w.proxyURLs) > 0 {
 		w.applyProxies(c)
 	}
+
+	c.OnRequest(w.onRequest)
+	c.OnResponse(w.onResponse)
+	c.OnError(func(r *colly.Response, e error) {
+		w.errors = append(w.errors, e)
+	})
 
 	return c
 }
