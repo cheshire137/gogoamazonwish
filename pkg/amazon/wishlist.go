@@ -48,6 +48,10 @@ type Wishlist struct {
 
 // NewWishlist constructs an Amazon wishlist for the given URL.
 func NewWishlist(urlStr string) (*Wishlist, error) {
+	if len(urlStr) < 1 {
+		return nil, errors.New("No Amazon wishlist URL provided")
+	}
+
 	uri, err := url.Parse(urlStr)
 	if err != nil {
 		return nil, err
