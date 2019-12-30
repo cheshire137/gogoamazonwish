@@ -32,17 +32,22 @@ func main() {
 	wishlist.DebugMode = true
 	wishlist.SetProxyURLs(proxyURLs...)
 
-	items, err := wishlist.Items()
-	if err != nil {
-		log.Fatalln(err)
-	}
-
 	name, err := wishlist.Name()
 	if err != nil {
 		log.Fatalln(err)
 	}
-
 	fmt.Println(name)
+
+	printURL, err := wishlist.PrintURL()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	fmt.Printf("Printable URL: <%s>\n", printURL)
+
+	items, err := wishlist.Items()
+	if err != nil {
+		log.Fatalln(err)
+	}
 	fmt.Printf("Found %d item(s):\n\n", len(items))
 	number := 1
 	for _, item := range items {

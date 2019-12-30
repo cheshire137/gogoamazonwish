@@ -45,6 +45,7 @@ type Wishlist struct {
 	id        string
 	items     map[string]*Item
 	name      string
+	printURL  string
 }
 
 // NewWishlist constructs an Amazon wishlist for the given URL.
@@ -97,6 +98,7 @@ func NewWishlistFromIDAtDomain(id string, amazonDomain string) (*Wishlist, error
 		proxyURLs:    []string{},
 		errors:       []error{},
 		name:         "",
+		printURL:     "",
 	}, nil
 }
 
@@ -116,6 +118,19 @@ func (w *Wishlist) Name() (string, error) {
 	}
 
 	return w.name, nil
+}
+
+// PrintURL returns the URL to the printer-friendly view of this wishlist on Amazon.
+func (w *Wishlist) PrintURL() (string, error) {
+	c := w.collector()
+
+	c.OnHTML("#wl-print-link", w.onPrintLink)
+
+	if err := w.loadWishlist(c); err != nil {
+		return "", err
+	}
+
+	return w.printURL, nil
 }
 
 // URLs returns the URLs used to access all the items in the wishlist. Will be
@@ -237,6 +252,15 @@ func (w *Wishlist) onResponse(r *colly.Response) {
 
 func (w *Wishlist) onName(el *colly.HTMLElement) {
 	w.name = strings.TrimSpace(el.Text)
+}
+
+func (w *Wishlist) onPrintLink(link *colly.HTMLElement) {
+	relativeURL := link.Attr("href")
+	if len(relativeURL) < 1 {
+		return
+	}
+
+	w.printURL = link.Request.AbsoluteURL(relativeURL)
 }
 
 func (w *Wishlist) onLoadMoreLink(c *colly.Collector, link *colly.HTMLElement) {

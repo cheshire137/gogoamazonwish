@@ -65,6 +65,19 @@ func TestName(t *testing.T) {
 	require.Equal(t, "NHA Wish List", name)
 }
 
+func TestPrintURL(t *testing.T) {
+	id := "123abc"
+	ts := newTestServer(t, id)
+	defer ts.Close()
+
+	wishlist, err := NewWishlistFromIDAtDomain(id, ts.URL)
+	require.NoError(t, err)
+
+	printURL, err := wishlist.PrintURL()
+	require.NoError(t, err)
+	require.Equal(t, ts.URL+"/hz/wishlist/printview/3I6EQPZ8OB1DT", printURL)
+}
+
 func TestItems(t *testing.T) {
 	id := "123abc"
 	ts := newTestServer(t, id)
@@ -101,6 +114,7 @@ func TestItems(t *testing.T) {
 const wishlistHTML = `<!doctype html>
 <html>
 	<body>
+		<a id="wl-print-link" data-reg-nav-link="{&quot;newTab&quot;:1}" class="a-link-normal a-declarative" href="/hz/wishlist/printview/3I6EQPZ8OB1DT">Print List</a>
 		<span id="profile-list-name" aria-level="2" class="a-size-medium a-text-bold" role="heading">NHA Wish List</span>
     <ul id="g-items" class="a-unordered-list a-nostyle a-vertical a-spacing-none g-items-section ui-sortable">
       <li data-id="3I6EQPZ8OB1DT" data-itemId="I2G6UJO0FYWV8J" data-price="15.96" data-reposition-action-params="{&quot;itemExternalId&quot;:&quot;ASIN:B0018CLTKE|ATVPDKIKX0DER&quot;,&quot;listType&quot;:&quot;wishlist&quot;,&quot;sid&quot;:&quot;144-1434562-6999725&quot;}" class="a-spacing-none g-item-sortable">
