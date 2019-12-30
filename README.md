@@ -1,6 +1,6 @@
 # GoGo Amazon Wish
 
-![Test CI status](https://github.com/cheshire137/gogoamazonwish/workflows/.github/workflows/test.yml/badge.svg)
+![Test CI status](https://github.com/cheshire137/gogoamazonwish/.github/workflows/test.yml/badge.svg)
 
 A Go library to get items from an Amazon wishlist. Unofficial as Amazon
 shut down their wishlist API. This uses web scraping to get the items
@@ -24,20 +24,20 @@ func main() {
   url := "https://www.amazon.com/hz/wishlist/ls/3I6EQPZ8OB1DT"
   wishlist, err := amazon.NewWishlist(url)
   if err != nil {
-		log.Fatalln(err)
+    log.Fatalln(err)
   }
 
   items, err := wishlist.Items()
-	if err != nil {
-		log.Fatalln(err)
+  if err != nil {
+    log.Fatalln(err)
   }
 
-	fmt.Printf("Found %d item(s):\n\n", len(items))
-	number := 1
-	for _itemID, item := range items {
-		fmt.Printf("%d) %s\n\n", number, item)
-		number++
-	}
+  fmt.Printf("Found %d item(s):\n\n", len(items))
+  number := 1
+  for _itemID, item := range items {
+    fmt.Printf("%d) %s\n\n", number, item)
+    number++
+  }
 }
 ```
 
