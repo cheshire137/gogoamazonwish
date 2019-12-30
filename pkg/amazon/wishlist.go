@@ -139,16 +139,6 @@ func (w *Wishlist) SetProxyURLs(urls ...string) {
 func (w *Wishlist) Items() (map[string]*Item, error) {
 	c := w.collector()
 
-	extensions.RandomUserAgent(c)
-	c.Limit(&colly.LimitRule{
-		RandomDelay: 2 * time.Second,
-		Parallelism: 4,
-	})
-
-	if len(w.proxyURLs) > 0 {
-		w.applyProxies(c)
-	}
-
 	c.OnRequest(w.onRequest)
 	c.OnResponse(w.onResponse)
 	c.OnHTML("ul li", w.onListItem)
@@ -190,7 +180,19 @@ func (w *Wishlist) collector() *colly.Collector {
 		}
 		options = append(options, colly.CacheDir(cachePath))
 	}
-	return colly.NewCollector(options...)
+	c := colly.NewCollector(options...)
+
+	extensions.RandomUserAgent(c)
+	c.Limit(&colly.LimitRule{
+		RandomDelay: 2 * time.Second,
+		Parallelism: 4,
+	})
+
+	if len(w.proxyURLs) > 0 {
+		w.applyProxies(c)
+	}
+
+	return c
 }
 
 func (w *Wishlist) onRequest(r *colly.Request) {
