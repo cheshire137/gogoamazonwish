@@ -106,8 +106,16 @@ func (w *Wishlist) ID() string {
 }
 
 // Name returns the name of this wishlist on Amazon.
-func (w *Wishlist) Name() string {
-	return w.name
+func (w *Wishlist) Name() (string, error) {
+	c := w.collector()
+
+	c.OnHTML("#profile-list-name", w.onName)
+
+	if err := w.loadWishlist(c); err != nil {
+		return "", err
+	}
+
+	return w.name, nil
 }
 
 // URLs returns the URLs used to access all the items in the wishlist. Will be
@@ -143,20 +151,9 @@ func (w *Wishlist) Items() (map[string]*Item, error) {
 	c.OnHTML("a.wl-see-more", func(link *colly.HTMLElement) {
 		w.onLoadMoreLink(c, link)
 	})
-	c.OnHTML("#profile-list-name", w.onName)
 
-	if w.DebugMode {
-		fmt.Println("Using URL", w.urls[0])
-	}
-
-	if err := c.Visit(w.urls[0]); err != nil {
+	if err := w.loadWishlist(c); err != nil {
 		return nil, err
-	}
-
-	c.Wait()
-
-	if len(w.errors) > 0 {
-		return nil, w.errors[0]
 	}
 
 	return w.items, nil
@@ -164,6 +161,24 @@ func (w *Wishlist) Items() (map[string]*Item, error) {
 
 func (w *Wishlist) String() string {
 	return strings.Join(w.urls, ", ")
+}
+
+func (w *Wishlist) loadWishlist(c *colly.Collector) error {
+	if w.DebugMode {
+		fmt.Println("Using URL", w.urls[0])
+	}
+
+	if err := c.Visit(w.urls[0]); err != nil {
+		return err
+	}
+
+	c.Wait()
+
+	if len(w.errors) > 0 {
+		return w.errors[0]
+	}
+
+	return nil
 }
 
 func (w *Wishlist) collector() *colly.Collector {

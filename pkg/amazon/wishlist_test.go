@@ -52,6 +52,19 @@ func TestNewWishlistFromIDAtDomain(t *testing.T) {
 	}
 }
 
+func TestName(t *testing.T) {
+	id := "123abc"
+	ts := newTestServer(t, id)
+	defer ts.Close()
+
+	wishlist, err := NewWishlistFromIDAtDomain(id, ts.URL)
+	require.NoError(t, err)
+
+	name, err := wishlist.Name()
+	require.NoError(t, err)
+	require.Equal(t, "NHA Wish List", name)
+}
+
 func TestItems(t *testing.T) {
 	id := "123abc"
 	ts := newTestServer(t, id)
@@ -64,7 +77,6 @@ func TestItems(t *testing.T) {
 	items, err := wishlist.Items()
 	require.NoError(t, err)
 	require.Len(t, items, 1)
-	require.Equal(t, "NHA Wish List", wishlist.Name())
 
 	itemID := "I2G6UJO0FYWV8J"
 	item, ok := items[itemID]
