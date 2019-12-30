@@ -81,22 +81,16 @@ func NewWishlistFromIDAtDomain(id string, amazonDomain string) (*Wishlist, error
 	if len(amazonDomain) < 1 {
 		return nil, errors.New("No Amazon domain specified")
 	}
-	amazonURL, err := url.Parse(amazonDomain)
+
+	wishlistURL, err := getWishlistURL(amazonDomain, id)
 	if err != nil {
 		return nil, err
 	}
 
-	port := amazonURL.Port()
-	if port != "" {
-		port = ":" + port
-	}
-
-	url := fmt.Sprintf("%s://%s%s/hz/wishlist/ls/%s?reveal=unpurchased&sort=date&layout=standard&viewType=list&filter=DEFAULT&type=wishlist",
-		amazonURL.Scheme, amazonURL.Hostname(), port, id)
 	return &Wishlist{
 		DebugMode:    false,
 		CacheResults: true,
-		urls:         []string{url},
+		urls:         []string{wishlistURL},
 		id:           id,
 		items:        map[string]*Item{},
 		proxyURLs:    []string{},
@@ -487,4 +481,20 @@ func (w *Wishlist) applyProxies(c *colly.Collector) error {
 	c.SetProxyFunc(proxySwitcher)
 
 	return nil
+}
+
+func getWishlistURL(amazonDomain string, id string) (string, error) {
+	amazonURL, err := url.Parse(amazonDomain)
+	if err != nil {
+		return "", err
+	}
+
+	port := amazonURL.Port()
+	if port != "" {
+		port = ":" + port
+	}
+
+	url := fmt.Sprintf("%s://%s%s/hz/wishlist/ls/%s?reveal=unpurchased&sort=date&layout=standard&viewType=list&filter=DEFAULT&type=wishlist",
+		amazonURL.Scheme, amazonURL.Hostname(), port, id)
+	return url, nil
 }
