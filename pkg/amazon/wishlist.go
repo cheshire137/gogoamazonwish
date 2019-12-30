@@ -44,6 +44,7 @@ type Wishlist struct {
 	urls      []string
 	id        string
 	items     map[string]*Item
+	name      string
 }
 
 // NewWishlist constructs an Amazon wishlist for the given URL.
@@ -95,12 +96,18 @@ func NewWishlistFromIDAtDomain(id string, amazonDomain string) (*Wishlist, error
 		items:        map[string]*Item{},
 		proxyURLs:    []string{},
 		errors:       []error{},
+		name:         "",
 	}, nil
 }
 
 // ID returns the identifier for this wishlist on Amazon.
 func (w *Wishlist) ID() string {
 	return w.id
+}
+
+// Name returns the name of this wishlist on Amazon.
+func (w *Wishlist) Name() string {
+	return w.name
 }
 
 // URLs returns the URLs used to access all the items in the wishlist. Will be
@@ -155,6 +162,7 @@ func (w *Wishlist) Items() (map[string]*Item, error) {
 	c.OnHTML("a.wl-see-more", func(link *colly.HTMLElement) {
 		w.onLoadMoreLink(c, link)
 	})
+	c.OnHTML("#profile-list-name", w.onName)
 
 	c.OnError(func(r *colly.Response, e error) {
 		w.errors = append(w.errors, e)
@@ -204,6 +212,10 @@ func (w *Wishlist) onResponse(r *colly.Response) {
 			w.errors = append(w.errors, err)
 		}
 	}
+}
+
+func (w *Wishlist) onName(el *colly.HTMLElement) {
+	w.name = strings.TrimSpace(el.Text)
 }
 
 func (w *Wishlist) onLoadMoreLink(c *colly.Collector, link *colly.HTMLElement) {

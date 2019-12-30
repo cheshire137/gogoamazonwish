@@ -64,6 +64,7 @@ func TestItems(t *testing.T) {
 	items, err := wishlist.Items()
 	require.NoError(t, err)
 	require.Len(t, items, 1)
+	require.Equal(t, "NHA Wish List", wishlist.Name())
 
 	itemID := "I2G6UJO0FYWV8J"
 	item, ok := items[itemID]
@@ -87,7 +88,8 @@ func TestItems(t *testing.T) {
 
 const wishlistHTML = `<!doctype html>
 <html>
-  <body>
+	<body>
+		<span id="profile-list-name" aria-level="2" class="a-size-medium a-text-bold" role="heading">NHA Wish List</span>
     <ul id="g-items" class="a-unordered-list a-nostyle a-vertical a-spacing-none g-items-section ui-sortable">
       <li data-id="3I6EQPZ8OB1DT" data-itemId="I2G6UJO0FYWV8J" data-price="15.96" data-reposition-action-params="{&quot;itemExternalId&quot;:&quot;ASIN:B0018CLTKE|ATVPDKIKX0DER&quot;,&quot;listType&quot;:&quot;wishlist&quot;,&quot;sid&quot;:&quot;144-1434562-6999725&quot;}" class="a-spacing-none g-item-sortable">
         <span class="a-list-item">

@@ -37,6 +37,7 @@ func main() {
 		log.Fatalln(err)
 	}
 
+	fmt.Println(wishlist.Name())
 	fmt.Printf("Found %d item(s):\n\n", len(items))
 	number := 1
 	for _, item := range items {
