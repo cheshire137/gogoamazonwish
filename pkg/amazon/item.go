@@ -1,6 +1,7 @@
 package amazon
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -68,8 +69,17 @@ func NewItem(id string, name string, directURL string) *Item {
 }
 
 // DateAdded returns the date this item was added to the wishlist.
-func (i *Item) DateAdded() (time.Time, error) {
-	return time.Parse("January 2, 2006", i.RawDateAdded)
+func (i *Item) DateAdded() (*time.Time, error) {
+	if i.RawDateAdded == "" {
+		return nil, fmt.Errorf("No date added found for item %s", i.ID)
+	}
+
+	date, err := time.Parse("January 2, 2006", i.RawDateAdded)
+	if err != nil {
+		return nil, err
+	}
+
+	return &date, nil
 }
 
 // URL returns a string URL to this product on Amazon. Prefers the link that
