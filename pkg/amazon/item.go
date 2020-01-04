@@ -3,6 +3,7 @@ package amazon
 import (
 	"strconv"
 	"strings"
+	"time"
 )
 
 // Item represents a product on an Amazon wishlist.
@@ -64,6 +65,11 @@ func NewItem(id string, name string, directURL string) *Item {
 		RequestedCount: -1,
 		OwnedCount:     -1,
 	}
+}
+
+// DateAdded returns the date this item was added to the wishlist.
+func (i *Item) DateAdded() (time.Time, error) {
+	return time.Parse("January 2, 2006", i.RawDateAdded)
 }
 
 // URL returns a string URL to this product on Amazon. Prefers the link that

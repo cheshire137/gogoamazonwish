@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
@@ -98,6 +99,9 @@ func TestItems(t *testing.T) {
 	require.Equal(t, "Purina Tidy Cats Non-Clumping Cat Litter", item.Name)
 	require.Equal(t, "$15.96", item.Price)
 	require.Equal(t, "July 10, 2019", item.RawDateAdded)
+	dateAdded, err := item.DateAdded()
+	require.NoError(t, err)
+	require.Equal(t, time.Date(2019, 7, 10, 0, 0, 0, 0, time.UTC), dateAdded)
 	require.Equal(t, "https://images-na.ssl-images-amazon.com/images/I/81YphWp9eIL._SS135_.jpg", item.ImageURL)
 	require.Equal(t, 50, item.RequestedCount)
 	require.Equal(t, 11, item.OwnedCount)
