@@ -44,8 +44,8 @@ type Item struct {
 	ID string
 
 	// DateAdded is a string representation of when this item was added to the
-	// wishlist.
-	DateAdded string
+	// wishlist. Example: "October 20, 2019"
+	RawDateAdded string
 
 	// Rating is a string description of how Amazon customers have rated this
 	// product.
@@ -95,9 +95,9 @@ func (i *Item) String() string {
 		sb.WriteString("\n")
 	}
 
-	if i.DateAdded != "" {
+	if i.RawDateAdded != "" {
 		sb.WriteString("\tAdded ")
-		sb.WriteString(i.DateAdded)
+		sb.WriteString(i.RawDateAdded)
 		sb.WriteString("\n")
 	}
 

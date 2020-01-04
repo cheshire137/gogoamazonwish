@@ -522,7 +522,7 @@ func (w *Wishlist) onDateAdded(id string, dateEl *colly.HTMLElement) {
 		return
 	}
 
-	item.DateAdded = strings.TrimPrefix(dateEl.Text, dateAddedPrefix)
+	item.RawDateAdded = strings.TrimPrefix(dateEl.Text, dateAddedPrefix)
 }
 
 func (w *Wishlist) applyProxies(c *colly.Collector) error {

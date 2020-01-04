@@ -97,7 +97,7 @@ func TestItems(t *testing.T) {
 	require.Equal(t, itemID, item.ID)
 	require.Equal(t, "Purina Tidy Cats Non-Clumping Cat Litter", item.Name)
 	require.Equal(t, "$15.96", item.Price)
-	require.Equal(t, "July 10, 2019", item.DateAdded)
+	require.Equal(t, "July 10, 2019", item.RawDateAdded)
 	require.Equal(t, "https://images-na.ssl-images-amazon.com/images/I/81YphWp9eIL._SS135_.jpg", item.ImageURL)
 	require.Equal(t, 50, item.RequestedCount)
 	require.Equal(t, 11, item.OwnedCount)
