@@ -66,7 +66,9 @@ func NewWishlist(urlStr string) (*Wishlist, error) {
 
 	pathParts := strings.Split(uri.EscapedPath(), "/")
 	id := pathParts[len(pathParts)-1]
-	return NewWishlistFromID(id)
+	domain := fmt.Sprintf("https://%s", uri.Hostname())
+
+	return NewWishlistFromIDAtDomain(id, domain)
 }
 
 // NewWishlistFromID constructs an Amazon wishlist for the given wishlist ID.
