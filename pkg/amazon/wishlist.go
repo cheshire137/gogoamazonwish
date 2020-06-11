@@ -17,6 +17,7 @@ const (
 	// DefaultAmazonDomain is the domain where an Amazon wishlist will
 	// be assumed to be located if not otherwise specified.
 	DefaultAmazonDomain = "https://www.amazon.com"
+	DefaultCurrency     = "USD"
 
 	robotMessage         = "we just need to make sure you're not a robot"
 	cachePath            = "./cache"
@@ -28,6 +29,24 @@ const (
 	dateAddedIDPrefix    = "itemAddedDate_"
 	dateAddedPrefix      = "Added "
 )
+
+var (
+	tldCurrencies map[string]string
+)
+
+func init() {
+	tldCurrencies = make(map[string]string)
+	tldCurrencies["ca"] = "CAD"
+	tldCurrencies["co.jp"] = "JPY"
+	tldCurrencies["co.uk"] = "GBP"
+	tldCurrencies["com"] = "USD"
+	tldCurrencies["com.br"] = "BRL"
+	tldCurrencies["de"] = "EUR"
+	tldCurrencies["es"] = "EUR"
+	tldCurrencies["fr"] = "EUR"
+	tldCurrencies["in"] = "INR"
+	tldCurrencies["it"] = "EUR"
+}
 
 // Wishlist represents an Amazon wishlist of products.
 type Wishlist struct {
@@ -231,7 +250,7 @@ func (w *Wishlist) onRequest(r *colly.Request) {
 	if w.DebugMode {
 		fmt.Println("Using User-Agent", r.Headers.Get("User-Agent"))
 	}
-	r.Headers.Set("cookie", "i18n-prefs=USD")
+	r.Headers.Set("cookie", getPrefsHeader(r.URL))
 }
 
 func (w *Wishlist) onResponse(r *colly.Response) {
@@ -556,4 +575,16 @@ func getWishlistURL(amazonDomain string, id string) (string, error) {
 	url := fmt.Sprintf("%s://%s%s/hz/wishlist/ls/%s?reveal=unpurchased&sort=date&layout=standard&viewType=list&filter=DEFAULT&type=wishlist",
 		amazonURL.Scheme, amazonURL.Hostname(), port, id)
 	return url, nil
+}
+
+func getPrefsHeader(url *url.URL) string {
+	strTmpl := "i18n-prefs=%s"
+	
+	for tld, currency := range tldCurrencies {
+		if strings.HasSuffix(url.Host, tld) {
+			return fmt.Sprintf(strTmpl, currency)
+		}
+	}
+
+	return fmt.Sprintf(strTmpl, DefaultCurrency)
 }
