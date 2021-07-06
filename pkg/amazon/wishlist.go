@@ -354,7 +354,7 @@ func (w *Wishlist) onRequestedCountSpan(id string, span *colly.HTMLElement) {
 		return
 	}
 
-	requestedCountStr := span.Text
+	requestedCountStr := strings.TrimSpace(span.Text)
 	if len(requestedCountStr) < 1 {
 		return
 	}
@@ -374,7 +374,7 @@ func (w *Wishlist) onOwnedCountSpan(id string, span *colly.HTMLElement) {
 		return
 	}
 
-	ownedCountStr := span.Text
+	ownedCountStr := strings.TrimSpace(span.Text)
 	if len(ownedCountStr) < 1 {
 		return
 	}
